@@ -110,13 +110,4 @@ class DecomposeModel:
 
 
 if __name__ == '__main__':
-    x = np.array([1, 2, 3, 4])
-    y = np.array([1, 2, 1, 2])
-    ts = TimeSerie(data={'date': x, 'value': y})
-
-    model = DecomposeModel(lag=4)
-
-    model.fit(ts)
-    print(model.__dict__)
-    print(model.predict(np.array([5, 6, 7, 8])))
-    print(np.mean(np.abs(np.array([1, 2, 1, 2]) - model.predict(np.array([6, 7, 8, 9]))) / np.array([1, 2, 1, 2])))
+    ...

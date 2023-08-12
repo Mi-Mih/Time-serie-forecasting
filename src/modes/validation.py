@@ -55,10 +55,4 @@ class Validation:
 
 
 if __name__ == '__main__':
-    df = pd.DataFrame({'value': [1, '2', 3], 'date': [True, 1, 'a']})
-
-    valid = Validation(df)
-
-    valid.validate()
-
-    print(valid.rules)
+    ...

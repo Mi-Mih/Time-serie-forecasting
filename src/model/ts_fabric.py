@@ -50,8 +50,4 @@ class TimeSerieFabric:
 
 
 if __name__ == '__main__':
-    c = TimeSerieFabric()
-
-    df = pd.DataFrame({'rr': ['a', 'b', 'c'], 'gg': ['c', 'b', 'a'], 'date': [4, 4, 4], 'value': [1, 2, 3]})
-
-    box = c.create(df)
+    ...

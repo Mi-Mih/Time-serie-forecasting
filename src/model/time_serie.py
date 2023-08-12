@@ -107,4 +107,4 @@ class TimeSerie:
 
 
 if __name__ == '__main__':
-    ts = TimeSerie({'date': np.array(['01-01-2020', '02-01-2020', '03-01-2020']), 'value': np.array([1, 2, 3])}, 1)
+    ...
