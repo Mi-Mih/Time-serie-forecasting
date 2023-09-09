@@ -6,7 +6,7 @@ from typing import Dict, Tuple
 class TimeSerieFabric:
     @staticmethod
     def create(df: pd.DataFrame, period_decomposition: int = 2,
-               type_decomposition: str = 'additive') -> Dict[Tuple, TimeSerie]:
+               type_decomposition: str = 'additive') -> Dict[Tuple[int, ...], TimeSerie]:
         """
         convert from pandas.DataFrame with time series to dict with time series
         :param type_decomposition: type_decomposition

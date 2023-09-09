@@ -1,10 +1,12 @@
 import pandas as pd
 from src.modes.validation import Validation
 from src.model.ts_fabric import TimeSerieFabric
-from src.forecaster.forecast import get_forecast
+from src.forecaster.forecast import Forecaster
+from src.utils.collect_data import write_to_excel
 
 
-def main(input_path: str, output_path: str, strict_mode: int = 1, horizon: int = 1, chosen_model: str = 'decompose_model') -> None:
+def main(input_path: str, output_path: str, strict_mode: int = 1, horizon: int = 1,
+         chosen_model: str = 'decompose_model') -> None:
     data = pd.read_excel(input_path)
 
     if strict_mode:
@@ -15,7 +17,10 @@ def main(input_path: str, output_path: str, strict_mode: int = 1, horizon: int =
 
     time_series_box = TimeSerieFabric.create(data)
 
-    get_forecast(time_series=time_series_box, horizon=horizon, output_path=output_path, chosen_model=chosen_model)
+    forecaster = Forecaster(time_series=time_series_box, horizon=horizon, chosen_model=chosen_model)
+    forecasts = forecaster.get_forecast()
+
+    write_to_excel(output_path=output_path, only_forecasts=forecasts, time_series=time_series_box)
 
 
 if __name__ == '__main__':

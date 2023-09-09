@@ -6,60 +6,48 @@ from typing import Dict, Tuple
 from src.math_model.decompose_model import DecomposeModel
 import numpy as np
 
+class Forecaster:
+    def __init__(self, time_series: Dict[Tuple[int, ...], TimeSerie], horizon: int = 1,
+                     chosen_model: str = 'decompose_model'):
 
-def collect_to_df(ts_dict: Dict, writer: pd.ExcelWriter, sheet_name: str, ) -> pd.DataFrame:
-    output_df = pd.DataFrame()
-    for name_ts, ts in ts_dict.items():
+        self.time_series = time_series
+        self.horizon = horizon
+        self.chosen_model = chosen_model
 
-        if isinstance(ts, dict):
-            df = pd.DataFrame({'date': ts['date'], 'value': ts['value']})
-        else:
-            df = pd.DataFrame({'date': ts.data['date'], 'value': ts.data['value']})
+    def get_forecast(self) -> Dict[Tuple[int, ...], Dict[str, np.array]]:
+        lags = self.horizon
+        only_forecasts = dict()
 
-        for index_name, value_column in enumerate(name_ts):
-            df['target'] = value_column
-        output_df = pd.concat([output_df, df], ignore_index=True)
+        models = {'decompose_model': DecomposeModel(lag=lags)}
 
-    output_df.to_excel(writer, sheet_name=sheet_name)
+        for name_ts, ts in self.time_series.items():
+
+            if ts.data["value"].shape[0] < self.horizon:
+                lags -= ts.data["value"].shape[0]
+
+            model = models.get(self.chosen_model, DecomposeModel(lag=lags))
+            model.fit(ts)
+
+            prediction_real_interval = pd.date_range(
+                start=pd.to_datetime(ts.data['date'][-1]) + datetime.timedelta(days=1),
+                periods=self.horizon)
+
+            prediction_model_interval = np.arange(ts.data['value'].shape[0], ts.data['value'].shape[0] + self.horizon)
+            prediction = model.predict(prediction_model_interval)
+
+            # create train + prediction ts
+            self.time_series[name_ts].data['value'] = np.append(self.time_series[name_ts].data['value'], prediction)
+            self.time_series[name_ts].data['date'] = np.append(self.time_series[name_ts].data['date'], prediction_real_interval)
+
+            # save only prediction part
+            only_forecasts[name_ts] = {'value': prediction, 'date': prediction_real_interval}
+
+        return only_forecasts
 
 
-def get_forecast(time_series: Dict[Tuple, TimeSerie], horizon: int = 1, output_path: str = '', chosen_model: str = 'decompose_model') -> None:
-    lags = horizon
-    only_forecasts = dict()
 
-    models = {'decompose_model': DecomposeModel(lag=lags)}
 
-    for name_ts, ts in time_series.items():
 
-        if ts.data["value"].shape[0] < horizon:
-            lags -= ts.data["value"].shape[0]
-
-        model = models.get(chosen_model, DecomposeModel(lag=lags))
-        model.fit(ts)
-
-        prediction_real_interval = pd.date_range(start=pd.to_datetime(ts.data['date'][-1]) + datetime.timedelta(days=1),
-                                                 periods=horizon)
-
-        prediction_model_interval = np.arange(ts.data['value'].shape[0], ts.data['value'].shape[0] + horizon)
-        prediction = model.predict(prediction_model_interval)
-
-        # create train + prediction ts
-        time_series[name_ts].data['value'] = np.append(time_series[name_ts].data['value'], prediction)
-        time_series[name_ts].data['date'] = np.append(time_series[name_ts].data['date'], prediction_real_interval)
-
-        # save only prediction part
-        only_forecasts[name_ts] = {'value': prediction, 'date': prediction_real_interval}
-
-    writer = pd.ExcelWriter(output_path, engine='openpyxl')
-
-    collect_to_df(writer=writer,
-                  ts_dict=only_forecasts,
-                  sheet_name='forecasts')
-    collect_to_df(writer=writer,
-                  ts_dict=time_series,
-                  sheet_name='full_ts')
-
-    writer.close()
 
 
 if __name__ == '__main__':
